@@ -14,6 +14,42 @@ It crawls every currently-open announcement from K-Startup, Bizinfo, NIPA, KOCCA
 
 Why exhaustive review instead of keyword search: the programs an "AI startup" can actually win — content-production grants, art×tech residencies, social-service startup funds — never match the keyword "AI".
 
+## Sample output (excerpt)
+
+A run saves the report (md), raw jsonl, and verified announcement texts to `~/Documents/지원사업조사_<target>_<date>/`. The report looks like this (announcements themselves are in Korean):
+
+```markdown
+# Support-program survey — ○○ (AI voice SaaS, pre-founder, Chungnam)
+Surveyed 2026-07-11 · reviewed all 262 K-Startup + 300 Bizinfo items → verified 31 candidates
+
+## Group A — Apply right now (by deadline)
+
+1. **2026 Youth Startup Academy, extra round** — KOSME
+   - Support: up to ₩100M commercialization fund + space + mentoring
+   - Eligibility: pre-founders ✓ · under 39 ✓ · nationwide ✓
+   - Deadline: 2026-07-18 16:00 (D-7) ⚠️ imminent
+   - https://www.k-startup.go.kr/web/contents/bizpbanc-ongoing.do?schM=view&pbancSn=1784xx
+
+## Group B — Unlocked by a requirement (roadmap)
+
+- **Pre-TIPS**: trigger = incorporating outside the capital region.
+  Chain: competition prize/seed → Chungnam incorporation → Pre-TIPS → TIPS
+
+## Group C — Eligible with reframing
+
+- **Content production grant (KOCCA)**: reframe "AI voice tech" as an
+  "audio-content production pipeline". Risk: deliverable must be content
+
+## Absence check
+- Pre-Startup Package: not currently open (usually announced in Feb)
+
+## Priority actions
+- by 7/18: apply to A-1 (note the 16:00 cutoff)
+- by 7/25: draft C-1 content framing, then call the agency to confirm
+```
+
+Every mentioned announcement carries its original URL; anything not stated in the announcement text is marked "unknown" rather than guessed.
+
 ## Covered sources
 
 | Source | What it is | Crawler |
