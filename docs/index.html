@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 깔끔한 번개 모양 Favicon (별도 이미지 파일 불필요) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+    <title>지원사업 통합 대시보드</title>
+    <style>
+        :root {
+            --bg-color: #F4F6F8;
+            --card-bg: #FFFFFF;
+            --text-main: #111827;
+            --text-muted: #6B7280;
+            --accent: #E9580B; /* Twisty 오렌지 포인트 */
+            --border: #E5E7EB;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        /* Top Navigation & Filters */
+        .header-panel {
+            background: var(--card-bg);
+            padding: 24px 32px;
+            border-radius: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            margin-bottom: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-top h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .filter-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        input[type="text"], select {
+            padding: 10px 16px;
+            border: 1px solid var(--border);
+            border-radius: 100px; /* 둥근 입력창 */
+            font-size: 14px;
+            background: #F9FAFB;
+            outline: none;
+            transition: all 0.2s;
+        }
+        input[type="text"]:focus, select:focus {
+            border-color: var(--accent);
+            background: #FFF;
+        }
+        input[type="text"] { width: 300px; }
+
+        .fav-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            user-select: none;
+            padding: 10px 16px;
+            background: #F9FAFB;
+            border: 1px solid var(--border);
+            border-radius: 100px;
+        }
+        .fav-toggle.active {
+            background: #FEF3C7;
+            border-color: #F59E0B;
+            color: #B45309;
+        }
+
+        /* Card List */
+        .card-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+        }
+        .card-left {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex: 1;
+        }
+        .fav-btn {
+            font-size: 24px;
+            cursor: pointer;
+            color: #D1D5DB;
+            transition: 0.2s;
+            margin-top: -4px;
+        }
+        .fav-btn.active { color: #F59E0B; }
+
+        .card-content { flex: 1; }
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0 0 8px 0;
+            line-height: 1.4;
+        }
+        .tags {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .tag {
+            padding: 4px 10px;
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 600;
+            background: #F3F4F6;
+            color: #4B5563;
+        }
+        .tag.urgent { background: #FEE2E2; color: #DC2626; }
+        .tag.category { background: #E0E7FF; color: #4338CA; }
+
+        .card-meta {
+            font-size: 13px;
+            color: var(--text-muted);
+            display: flex;
+            gap: 16px;
+        }
+        .card-meta span { display: flex; align-items: center; gap: 4px; }
+
+        .card-right {
+            text-align: right;
+            min-width: 120px;
+        }
+        .link-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: var(--text-main);
+            color: #FFF;
+            text-decoration: none;
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+        .link-btn:hover { background: var(--accent); }
+
+        .empty-state { text-align: center; padding: 60px; color: var(--text-muted); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-panel">
+        <div class="header-top">
+            <h1>프로젝트 탐색기</h1>
+            <div style="text-align:right;">
+                <span id="resultCount" style="color: var(--text-muted); font-size: 14px; font-weight: 500;"></span>
+                <div id="updatedAt" style="color: var(--text-muted); font-size: 12px; margin-top:4px;"></div>
+            </div>
+        </div>
+        <div class="filter-group">
+            <input type="text" id="searchInput" placeholder="공고명, 기관명 키워드 검색...">
+            <select id="categorySelect">
+                <option value="all">지원분야 (전체)</option>
+                <!-- 자바스크립트로 자동 생성됨 -->
+            </select>
+            <select id="sortSelect">
+                <option value="deadline">마감일 임박순</option>
+                <option value="default">최신 수집순</option>
+            </select>
+            <div class="fav-toggle" id="favToggle" onclick="toggleFavFilter()">
+                ★ 즐겨찾기만 보기
+            </div>
+        </div>
+    </div>
+
+    <div class="card-list" id="cardList">
+        <!-- 데이터 렌더링 영역 -->
+    </div>
+</div>
+
+<script>
+    let rawData = [];
+    let categories = new Set();
+
+    // 로컬 스토리지 연동
+    let favorites = JSON.parse(localStorage.getItem('bizFavorites')) || {};
+    let savedState = JSON.parse(localStorage.getItem('bizDashboardState')) || {
+        search: '', sort: 'deadline', category: 'all', showFavOnly: false
+    };
+
+    const searchInput = document.getElementById('searchInput');
+    const sortSelect = document.getElementById('sortSelect');
+    const categorySelect = document.getElementById('categorySelect');
+    const favToggle = document.getElementById('favToggle');
+    const cardList = document.getElementById('cardList');
+    const resultCount = document.getElementById('resultCount');
+
+    // 초기 상태 복원
+    searchInput.value = savedState.search;
+    sortSelect.value = savedState.sort;
+    if (savedState.showFavOnly) favToggle.classList.add('active');
+
+    // 비정형 날짜 파서
+    function parseCustomDate(item) {
+        let d = item.deadline || "";
+        let dday = item.dday || "";
+        if (dday === '오늘마감' || d.includes('오늘')) return new Date();
+        if (d.includes('상시') || d.includes('예산') || d.includes('미정')) return new Date(9999, 11, 31);
+
+        let normalized = d.replace(/\./g, '-').replace(/\//g, '-').trim();
+        let parts = normalized.split('-');
+        if (parts.length >= 3) {
+            if (parts[0].length === 2) parts[0] = '20' + parts[0];
+            normalized = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].substring(0,2).padStart(2, '0')}`;
+        }
+        let parsed = new Date(normalized);
+        return isNaN(parsed.getTime()) ? new Date(9999, 11, 31) : parsed;
+    }
+
+    // 자동화 스크립트(.command)용 데이터 로드
+    window.onload = function() {
+        fetch('all.jsonl?v=' + new Date().getTime())
+            .then(response => {
+                const lm = response.headers.get('last-modified');
+                if (lm) {
+                    const d = new Date(lm);
+                    document.getElementById('updatedAt').textContent =
+                        '데이터 갱신: ' + d.toLocaleString('ko-KR');
+                }
+                return response.text();
+            })
+            .then(text => {
+                const lines = text.split('\n');
+                rawData = lines.filter(line => line.trim() !== '').map((line, index) => {
+                    try {
+                        let obj = JSON.parse(line);
+                        obj._id = obj.pbancSn || `item_${index}`; // 고유 ID
+                        if (obj.category) categories.add(obj.category);
+                        return obj;
+                    } catch(e) { return null; }
+                }).filter(item => item !== null);
+
+                populateCategories();
+                renderCards();
+            })
+            .catch(error => {
+                cardList.innerHTML = '<div class="empty-state">데이터를 불러올 수 없습니다. 크롤러 실행 여부를 확인하세요.</div>';
+            });
+    };
+
+    function populateCategories() {
+        categories.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat;
+            option.textContent = cat;
+            categorySelect.appendChild(option);
+        });
+        categorySelect.value = savedState.category || 'all';
+    }
+
+    // 상태 업데이트
+    function updateStateAndRender() {
+        localStorage.setItem('bizDashboardState', JSON.stringify({
+            search: searchInput.value,
+            sort: sortSelect.value,
+            category: categorySelect.value,
+            showFavOnly: favToggle.classList.contains('active')
+        }));
+        renderCards();
+    }
+
+    searchInput.addEventListener('input', updateStateAndRender);
+    sortSelect.addEventListener('change', updateStateAndRender);
+    categorySelect.addEventListener('change', updateStateAndRender);
+
+    function toggleFavFilter() {
+        favToggle.classList.toggle('active');
+        updateStateAndRender();
+    }
+
+    window.toggleFavorite = function(id) {
+        if (favorites[id]) delete favorites[id];
+        else favorites[id] = true;
+        localStorage.setItem('bizFavorites', JSON.stringify(favorites));
+        renderCards();
+    };
+
+    function renderCards() {
+        if (rawData.length === 0) return;
+
+        let filtered = rawData.filter(item => {
+            const term = searchInput.value.toLowerCase();
+            const titleMatch = (item.title || '').toLowerCase().includes(term);
+            const orgMatch = (item.org || '').toLowerCase().includes(term);
+            const keywordMatch = titleMatch || orgMatch;
+
+            const catMatch = categorySelect.value === 'all' || item.category === categorySelect.value;
+            const favMatch = !favToggle.classList.contains('active') || favorites[item._id];
+
+            return keywordMatch && catMatch && favMatch;
+        });
+
+        if (sortSelect.value === 'deadline') {
+            filtered.sort((a, b) => parseCustomDate(a) - parseCustomDate(b));
+        }
+
+        cardList.innerHTML = '';
+        resultCount.textContent = `${filtered.length} Projects`;
+
+        if (filtered.length === 0) {
+            cardList.innerHTML = '<div class="empty-state">조건에 맞는 프로젝트가 없습니다.</div>';
+            return;
+        }
+
+        filtered.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            const isFav = favorites[item._id] ? 'active' : '';
+
+            let ddayBadgeClass = 'tag';
+            let ddayText = item.dday || '-';
+            if (ddayText === '오늘마감' || (ddayText.startsWith('D-') && parseInt(ddayText.replace('D-', '')) <= 7)) {
+                ddayBadgeClass += ' urgent';
+            }
+
+            card.innerHTML = `
+                <div class="card-left">
+                    <div class="fav-btn ${isFav}" onclick="toggleFavorite('${item._id}')">★</div>
+                    <div class="card-content">
+                        <div class="tags">
+                            <span class="tag category">${item.category || '미분류'}</span>
+                            <span class="${ddayBadgeClass}">${ddayText}</span>
+                        </div>
+                        <h3 class="card-title">${item.title || '제목 없음'}</h3>
+                        <div class="card-meta">
+                            <span>🏢 ${item.org || '-'}</span>
+                            <span>📅 마감: ${item.deadline || '상시'}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-right">
+                    <a href="${item.url}" class="link-btn" target="_blank" rel="noopener noreferrer">Details →</a>
+                </div>
+            `;
+            cardList.appendChild(card);
+        });
+    }
+</script>
+</body>
+</html>
