@@ -32,7 +32,7 @@ Settings → **Actions → General → Workflow permissions**
 
 ## 4) 자동 갱신
 
-`.github/workflows/update-data.yml` 이 **매일 오전 9시(KST)** 크롤러를 돌려
+`.github/workflows/update-data.yml` 이 **3시간마다** 크롤러를 돌려
 `docs/all.jsonl` 을 갱신하고 자동 커밋합니다 → Pages가 자동 재배포됩니다.
 
 - 즉시 한 번 돌려보려면: 저장소 → **Actions → Update K-Startup data → Run workflow**
